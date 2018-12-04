@@ -4,9 +4,9 @@
             [clojure.set :as set]))
 
 (defn points [[_ x y w h]]
-  (set (for [dx (range 0 w)
-             dy (range 0 h)]
-         [(+ x dx) (+ y dy)])))
+  (for [dx (range 0 w)
+        dy (range 0 h)]
+    [(+ x dx) (+ y dy)]))
 
 (defn ->map [[id x y w h]]
   {:id id :x x :y y :w w :h h})
@@ -30,20 +30,20 @@
        (< y1 (+ y2 h2))
        (> (+ y1 h1) y2)))
 
-(defn non-overlapping [xv]
-  (for [idx (range 0 (count xv))
-        :when (not-any? #(and (not= (xv idx) %)
-                              (overlap? (xv idx) %))
-                        xv)]
-    (:id (xv idx))))
+(defn non-overlapping [xs]
+  (for [lhs xs
+        :when (not-any? #(and (not= lhs %)
+                              (overlap? lhs %))
+                        xs)]
+    (:id lhs)))
 
 (defn run []
   (let [input (utils/day-file 3)]
     {:part1 (->> (mapcat (comp points parse-line) input)
-                 (reduce contested {:claimed #{}
+                 (reduce contested {:claimed   #{}
                                     :contested #{}})
                  (:contested)
                  (count))
-     :part2 (->> (mapv (comp ->map parse-line) input)
+     :part2 (->> (map (comp ->map parse-line) input)
                  (non-overlapping)
                  (first))}))
