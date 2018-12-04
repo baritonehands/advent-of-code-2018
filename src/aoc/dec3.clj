@@ -19,10 +19,10 @@
        (map (comp #(Integer/parseInt %)
                   (memfn trim)))))
 
-(defn intersections [xv]
-  (for [idx (range 0 (count xv))
-        rhs (subvec xv (inc idx))]
-    (set/intersection (xv idx) rhs)))
+(defn contested [{:keys [claimed] :as acc} coord]
+  (if (contains? claimed coord)
+    (update acc :contested conj coord)
+    (update acc :claimed conj coord)))
 
 (defn overlap? [{x1 :x y1 :y w1 :w h1 :h} {x2 :x y2 :y w2 :w h2 :h}]
   (and (< x1 (+ x2 w2))
@@ -39,10 +39,10 @@
 
 (defn run []
   (let [input (utils/day-file 3)]
-    {:part1 (->> (pmap (comp points parse-line) input)
-                 (vec)
-                 (intersections)
-                 (reduce set/union)
+    {:part1 (->> (mapcat (comp points parse-line) input)
+                 (reduce contested {:claimed #{}
+                                    :contested #{}})
+                 (:contested)
                  (count))
      :part2 (->> (mapv (comp ->map parse-line) input)
                  (non-overlapping)
