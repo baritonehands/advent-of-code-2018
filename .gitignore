@@ -1,0 +1,27 @@
+**/target
+**/classes
+**/checkouts
+pom.xml
+pom.xml.asc
+*.jar
+*.class
+**/.lein-*
+**/.nrepl-port
+**/node_modules
+**/.shadow-cljs
+.classpath
+.project
+*.prefs
+
+# Intellij
+**/.idea/*
+!.idea/runConfigurations
+**/*.iml
+**/*.iws
+classes/
+
+# Mac
+.DS_Store
+
+# Maven
+log/
