@@ -7,51 +7,59 @@
     {:players (Integer/parseInt (first words))
      :points  (Integer/parseInt (nth words 6))}))
 
-(defn remove-marble [{:keys [marbles n player cur scores] :as res}]
-  (let [to-remove (mod (- cur 7) (count marbles))
-        *marbles (transient [])
-        ;[before after] (split-at to-remove marbles)
-        score (+ (get scores player 0) n (marbles to-remove))]
-    (reduce conj! *marbles (subvec marbles 0 to-remove))
-    (reduce conj! *marbles (subvec marbles (inc to-remove)))
+(defn ll-init [n]
+  (let [node (transient {:value n})]
+    (assoc! node :next node)
+    (assoc! node :prev node)
+    node))
+
+(defn ll-insert [{:keys [next] :as root} n]
+  (let [node (transient {:value n})]
+    (assoc! node :next next :prev root)
+    (assoc! next :prev node)
+    (assoc! root :next node)
+    node))
+
+(defn ll-remove [{:keys [next prev value] :as node}]
+  (assoc! next :prev prev)
+  (assoc! prev :next next)
+  [next (:value node)])
+
+(defn ll-nth [node idx]
+  (nth (iterate (if (neg? idx) :prev :next) node) (Math/abs (int idx))))
+
+(defn remove-marble [{:keys [n player cur scores] :as res}]
+  (let [[next-cur points] (ll-remove (ll-nth cur -7))
+        score (+ (get scores player 0) n points)]
     (-> res
-        (assoc :marbles (persistent! *marbles))
-        (assoc :cur to-remove)
+        (assoc :cur next-cur)
         (assoc-in [:scores player] score))))
 
-(defn add-marble [{:keys [marbles n cur] :as res}]
-  (let [next-idx (mod (+ cur 1) (count marbles))
-        *marbles (transient [])]
-    (reduce conj! *marbles (subvec marbles 0 (inc next-idx)))
-    (conj! *marbles n)
-    (reduce conj! *marbles (subvec marbles (inc next-idx)))
-    (-> res
-        (assoc :marbles (persistent! *marbles))
-        (assoc :cur (inc next-idx)))))
+(defn add-marble [{:keys [n cur] :as res}]
+  (assoc res :cur (ll-insert (:next cur) n)))
 
 (defn place-fn [{:keys [players]}]
-  (fn [{:keys [n last marbles] :as res}]
-    (if (zero? (mod n 1000))
-      (println "N" n "Last" last "Count" (count marbles)))
+  (fn [{:keys [n last] :as res}]
     (-> (if (zero? (mod n 23))
           (remove-marble res)
           (add-marble res))
         (update :n inc)
         (update :player #(mod (inc %) players)))))
 
+(defn part [ms points]
+  (->> (nth ms (dec points))
+       (:scores)
+       (sort-by (comp - val))
+       (first)))
+
 (defn run []
   (let [{:keys [players points]} (parse (first (utils/day-file 9)))
         ;players 10
         ;points 1618
         place (place-fn {:players players})
-        output (iterate place {:marbles [0 2 1]
-                               :n       3
-                               :player  3
-                               :cur     1
-                               :scores  {}})]
-    {:part1 (->> (nth output (- points 3))
-                 (:scores)
-                 (sort-by val))
-     :part2 (->> (nth output (- (* points 100) 3))
-                 (:scores)
-                 (sort-by val))}))
+        ms (iterate place {:n      1
+                           :player 1
+                           :cur    (ll-init 0)
+                           :scores {}})]
+    {:part1 (time (part ms points))
+     :part2 (time (part ms (* points 100)))}))
