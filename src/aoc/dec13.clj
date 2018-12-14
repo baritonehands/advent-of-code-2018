@@ -14,20 +14,21 @@
                   c)])
        (into {})))
 
-(defn print-world [world]
-  (for [y (range 0 13)]
+(defn print-world [nx ny world]
+  (doseq [y (range 0 ny)]
     (println
       (apply str
-        (for [x (range 0 13)]
+        (for [x (range 0 nx)]
           (let [c (world [x y])]
-            (if (vector? c) (first c) (or c " "))))))))
+            (if (vector? c) (first c) (or c " ")))))))
+  world)
 
 (defn carts [world]
   (->> (filter (comp vector? val) world)
        (sort-by (juxt (comp second first) ffirst))))
 
 (defn collisions [world]
-  (filter (comp #(= % \X) val) world))
+  (:collisions (meta world)))
 
 (defn next [[x y] dir]
   (case dir
@@ -58,13 +59,13 @@
 (defn turn [world [x y] [dir idx :as cart]]
   (let [track (world (next [x y] dir))]
     (cond
-      (vector? track) \X
+      (vector? track) (last track)
       (= track \+) (intersection cart)
       :else [(get turn-mappings [track dir] dir) idx track])))
 
 (defn move [world pos [dir _ under :as cart]]
-  (if (= (world pos) \X)
-    world ; Already intersected
+  (if (not= (world pos) cart)
+    (vary-meta world update :collisions conj pos) ; Already collided
     (-> world
         (assoc pos under)
         (assoc (next pos dir) (turn world pos cart)))))
@@ -80,9 +81,16 @@
 
 (defn run []
   (let [input (utils/day-file 13)
-        world (parse-input input)]
+        world (with-meta
+                (parse-input input)
+                {:collisions []})]
     {:part1 (->> (iterate move-all world)
                  (drop-while (comp empty? collisions))
                  (first)
-                 (collisions))}))
-
+                 (collisions)
+                 (time))
+     :part2 (->> (iterate move-all world)
+                 (drop-while #(not= 1 (count (carts %))))
+                 (first)
+                 (carts)
+                 (time))}))
