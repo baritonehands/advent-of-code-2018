@@ -6,13 +6,9 @@
   (->> (str/split line #",\s+")
        (mapv #(Integer/parseInt %))))
 
-(defn ny-distance [[x y] [cx cy]]
-  (+ (Math/abs ^int (- cy y))
-     (Math/abs ^int (- cx x))))
-
 (defn all-distances [coords lhs]
   (let [shortest (->> (map-indexed (fn [idx coord]
-                                     [idx (ny-distance lhs coord)]) coords)
+                                     [idx (utils/ny-distance lhs coord)]) coords)
                       (sort-by second)
                       (partition-by second)
                       (first))]
@@ -36,7 +32,7 @@
 (defn part2 [coords xmin ymin xmax ymax]
   (->> (for [x (range xmin xmax)
              y (range ymin ymax)
-             :when (< (reduce + (map #(ny-distance [x y] %) coords)) 10000)]
+             :when (< (reduce + (map #(utils/ny-distance [x y] %) coords)) 10000)]
          true)
        (count)))
 

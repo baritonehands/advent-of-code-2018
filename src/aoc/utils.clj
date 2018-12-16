@@ -12,3 +12,7 @@
 
 (defn min-by [f xs]
   (apply min (map f xs)))
+
+(defn ny-distance [[x y] [cx cy]]
+  (+ (Math/abs ^int (- cy y))
+     (Math/abs ^int (- cx x))))
