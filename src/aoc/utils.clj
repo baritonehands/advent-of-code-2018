@@ -2,10 +2,12 @@
   (:require [clojure.java.io :as io]
             [clojure.string :as str]))
 
-(defn day-file [day]
-  (->> (io/resource (str "dec" day ".txt"))
-       (slurp)
-       (str/split-lines)))
+(defn day-file
+  ([day] (day-file day nil))
+  ([day part]
+   (->> (io/resource (str "dec" day (if part (str "-" part)) ".txt"))
+        (slurp)
+        (str/split-lines))))
 
 (defn max-by [f xs]
   (apply max (map f xs)))
