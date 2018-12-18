@@ -100,14 +100,14 @@
         {:water next-water
          :src next-src}
         (let [npos (next-pos cur)
-              new-src (doto (turns clay water cur npos) println)]
+              turn-src (doto (turns clay water cur npos) println)]
           (if-not (blocked? clay npos (water npos))
             (recur more
-                   (apply conj next-src (or new-src
+                   (apply conj next-src (or turn-src
                                             [[npos dir]]))
                    (assoc next-water npos \|))
             (recur more
-                   (apply conj next-src (or new-src
+                   (apply conj next-src (or turn-src
                                             [[npos dir]]))
                    (assoc next-water npos \|))))))))
 
