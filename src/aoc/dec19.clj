@@ -26,27 +26,27 @@
 (defn execute [ip state {:keys [ip-register instructions]}]
   (loop [ip ip
          state state
-         idx 0
-         rep state]
-    (when (= (state 2) 10551360);(zero? (mod idx 100000))
-      (println idx ip state rep))
+         idx 0]
+         ;rep state]
+    ;(when (= (state 2) 10551360);(zero? (mod idx 100000))
+    ;  (println idx ip state rep))
     (if (>= ip (count instructions))
       state
-      (if (and (zero? (mod idx 10000))
-               (not= rep state)
-               (can-skip? rep state))
-        (let [skip-to (can-skip? rep state)]
-          (recur ip skip-to (inc idx) skip-to))
-        (let [f (instructions ip)
-              op-state (assoc state ip-register ip)
-              next-state (f op-state)]
-          (recur
-            (inc (next-state ip-register))
-            next-state
-            (inc idx)
-            (if (zero? (mod idx 10000))
-              state
-              rep)))))))
+      ;(if (and (zero? (mod idx 10000))
+      ;         (not= rep state)
+      ;         (can-skip? rep state))
+        ;(let [skip-to (can-skip? rep state)]
+        ;  (recur ip skip-to (inc idx) skip-to))
+      (let [f (instructions ip)
+            op-state (assoc state ip-register ip)
+            next-state (f op-state)]
+        (recur
+          (inc (next-state ip-register))
+          next-state
+          (inc idx))))))
+          ;(if (zero? (mod idx 10000))
+          ;  state
+          ;  rep))))))
 
 (def test-input (str/split-lines "#ip 0\nseti 5 0 1\nseti 6 0 2\naddi 0 1 0\naddr 1 2 3\nsetr 1 0 0\nseti 8 0 4\nseti 9 0 5"))
 
